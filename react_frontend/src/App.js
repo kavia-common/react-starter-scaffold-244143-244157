@@ -1,48 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useMemo, useState } from "react";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import "./App.css";
+import { Layout } from "./components/Layout";
+import { Home } from "./pages/Home";
+import { About } from "./pages/About";
+import { Projects } from "./pages/Projects";
+import { Contact } from "./pages/Contact";
+import { NotFound } from "./pages/NotFound";
 
+/**
+ * Portfolio application entry component.
+ */
 // PUBLIC_INTERFACE
 function App() {
-  const [theme, setTheme] = useState('light');
+  /** Controls routing + global theme. */
+  const [theme, setTheme] = useState("dark");
 
-  // Effect to apply theme to document element
+  // Initialize theme from localStorage, then apply to document.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
+    const stored = window.localStorage.getItem("portfolio_theme");
+    if (stored === "light" || stored === "dark") setTheme(stored);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    window.localStorage.setItem("portfolio_theme", theme);
   }, [theme]);
 
   // PUBLIC_INTERFACE
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    /** Toggle light/dark theme. */
+    setTheme((t) => (t === "dark" ? "light" : "dark"));
   };
 
+  const routerBasename = useMemo(() => {
+    // If this app is deployed under a subpath, CRA typically sets PUBLIC_URL.
+    // BrowserRouter basename can be configured later if needed; keep simple for now.
+    return undefined;
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <BrowserRouter basename={routerBasename}>
+      <Layout theme={theme} onToggleTheme={toggleTheme}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Layout>
+    </BrowserRouter>
   );
 }
 
